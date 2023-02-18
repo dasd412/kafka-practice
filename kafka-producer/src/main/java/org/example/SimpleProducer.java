@@ -24,10 +24,49 @@ public class SimpleProducer {
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
 
+
+
+        sendMessageWithoutMessageKey(configs);
+
+        sendMessageWithMessageKey(configs);
+
+        sendMessageWithExactPartition(configs);
+
+    }
+
+    private static void sendMessageWithoutMessageKey(Properties configs){
         KafkaProducer<String, String> producer = new KafkaProducer<>(configs);
 
         String messageValue = "testMessage";
         ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, messageValue);
+
+        producer.send(record);
+
+        logger.info("{}", record);
+
+        producer.flush();
+        producer.close();
+    }
+
+    private static void sendMessageWithMessageKey(Properties configs){
+        KafkaProducer<String, String> producer = new KafkaProducer<>(configs);
+
+        ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, "messageKey","2023");
+
+        producer.send(record);
+
+        logger.info("{}", record);
+
+        producer.flush();
+        producer.close();
+    }
+
+    private static void sendMessageWithExactPartition(Properties configs){
+        int partitionNumber=0;
+
+        KafkaProducer<String, String> producer = new KafkaProducer<>(configs);
+
+        ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, partitionNumber,"messageKey","2023");
 
         producer.send(record);
 
