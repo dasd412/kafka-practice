@@ -23,8 +23,7 @@ public class SimpleProducer {
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOT_STRAP_SERVERS);
         configs.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         configs.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,StringSerializer.class.getName());
-
-
+        configs.put(ProducerConfig.PARTITIONER_CLASS_CONFIG,CustomPartitioner.class);
 
         sendMessageWithoutMessageKey(configs);
 
@@ -51,7 +50,7 @@ public class SimpleProducer {
     private static void sendMessageWithMessageKey(Properties configs){
         KafkaProducer<String, String> producer = new KafkaProducer<>(configs);
 
-        ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, "messageKey","2023");
+        ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, "year","2023");
 
         producer.send(record);
 
