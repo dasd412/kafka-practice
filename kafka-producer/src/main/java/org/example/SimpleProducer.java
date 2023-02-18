@@ -3,11 +3,13 @@ package org.example;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
+import java.util.concurrent.ExecutionException;
 
 public class SimpleProducer {
 
@@ -17,7 +19,7 @@ public class SimpleProducer {
 
     private final static String BOOT_STRAP_SERVERS = "localhost:9092";
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ExecutionException, InterruptedException {
 
         Properties configs = new Properties();
         configs.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, BOOT_STRAP_SERVERS);
@@ -39,7 +41,7 @@ public class SimpleProducer {
         String messageValue = "testMessage";
         ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, messageValue);
 
-        producer.send(record);
+        producer.send(record,new ProducerCallback());
 
         logger.info("{}", record);
 
@@ -47,12 +49,14 @@ public class SimpleProducer {
         producer.close();
     }
 
-    private static void sendMessageWithMessageKey(Properties configs){
+    private static void sendMessageWithMessageKey(Properties configs) throws ExecutionException, InterruptedException {
         KafkaProducer<String, String> producer = new KafkaProducer<>(configs);
 
         ProducerRecord<String, String> record = new ProducerRecord<>(TOPIC_NAME, "year","2023");
 
-        producer.send(record);
+        RecordMetadata metadata=producer.send(record).get();
+
+        logger.info(metadata.toString());
 
         logger.info("{}", record);
 
