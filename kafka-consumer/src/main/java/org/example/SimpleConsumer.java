@@ -36,15 +36,27 @@ public class SimpleConsumer {
         while (true){
             ConsumerRecords<String,String>records=consumer.poll(Duration.ofSeconds(1));
 
-            Map<TopicPartition, OffsetAndMetadata> currentOffset=new HashMap<>();
-
             for(ConsumerRecord<String,String>record:records){
                 logger.info("{}",record);
-                currentOffset.put(
-                        new TopicPartition(record.topic(),record.partition()),
-                        new OffsetAndMetadata(record.offset()+1,null));
-                consumer.commitSync(currentOffset);
             }
+
+            consumer.commitAsync(
+                    new OffsetCommitCallback() {
+                        @Override
+                        public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets, Exception e) {
+                            if(e!=null){
+                                System.err.println("Commit failed");
+                            }
+                            else{
+                                System.out.println("Commit succeed");
+                            }
+
+                            if(e!=null){
+                                logger.error("Commit failed for offsets {}",offsets,e);
+                            }
+                        }
+                    }
+            );
         }
     }
 }
