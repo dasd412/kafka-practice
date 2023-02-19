@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.util.*;
 
 public class SimpleConsumer {
 
@@ -22,6 +19,10 @@ public class SimpleConsumer {
 
     private final static String GROUP_ID="test_group";
 
+    private static KafkaConsumer<String,String> consumer;
+
+    private static Map<TopicPartition,OffsetAndMetadata>currentOffsets=new HashMap<>();
+
     public static void main(String[] args) {
         Properties configs=new Properties();
         configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,BOOTSTRAP_SERVERS);
@@ -30,33 +31,34 @@ public class SimpleConsumer {
         configs.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,StringDeserializer.class.getName());
         configs.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,false);
 
-        KafkaConsumer<String,String> consumer= new KafkaConsumer<>(configs);
-        consumer.subscribe(Arrays.asList(TOPIC_NAME));
+        consumer= new KafkaConsumer<>(configs);
+
+        consumer.subscribe(Arrays.asList(TOPIC_NAME),new ReBalanceListener());
 
         while (true){
             ConsumerRecords<String,String>records=consumer.poll(Duration.ofSeconds(1));
 
             for(ConsumerRecord<String,String>record:records){
                 logger.info("{}",record);
+                currentOffsets.put(
+                        new TopicPartition(record.topic(),record.partition()),
+                        new OffsetAndMetadata(record.offset()+1,null));
+                consumer.commitSync(currentOffsets);
             }
+        }
+    }
 
-            consumer.commitAsync(
-                    new OffsetCommitCallback() {
-                        @Override
-                        public void onComplete(Map<TopicPartition, OffsetAndMetadata> offsets, Exception e) {
-                            if(e!=null){
-                                System.err.println("Commit failed");
-                            }
-                            else{
-                                System.out.println("Commit succeed");
-                            }
+    private static class ReBalanceListener implements ConsumerRebalanceListener{
 
-                            if(e!=null){
-                                logger.error("Commit failed for offsets {}",offsets,e);
-                            }
-                        }
-                    }
-            );
+        @Override
+        public void onPartitionsRevoked(Collection<TopicPartition> collection) {
+            logger.warn("Partitions are assigned");
+        }
+
+        @Override
+        public void onPartitionsAssigned(Collection<TopicPartition> collection) {
+            logger.warn("partitions are revoked");
+            consumer.commitSync(currentOffsets);
         }
     }
 }
