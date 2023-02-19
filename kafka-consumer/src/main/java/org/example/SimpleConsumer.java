@@ -2,6 +2,7 @@ package org.example;
 
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.errors.WakeupException;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,8 @@ public class SimpleConsumer {
     private static Map<TopicPartition,OffsetAndMetadata>currentOffsets=new HashMap<>();
 
     public static void main(String[] args) {
+        Runtime.getRuntime().addShutdownHook(new ShutdownThread());
+
         Properties configs=new Properties();
         configs.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,BOOTSTRAP_SERVERS);
         configs.put(ConsumerConfig.GROUP_ID_CONFIG,GROUP_ID);
@@ -35,16 +38,30 @@ public class SimpleConsumer {
 
         consumer.subscribe(Arrays.asList(TOPIC_NAME),new ReBalanceListener());
 
-        while (true){
-            ConsumerRecords<String,String>records=consumer.poll(Duration.ofSeconds(1));
+        try{
+            while (true){
+                ConsumerRecords<String,String>records=consumer.poll(Duration.ofSeconds(1));
 
-            for(ConsumerRecord<String,String>record:records){
-                logger.info("{}",record);
-                currentOffsets.put(
-                        new TopicPartition(record.topic(),record.partition()),
-                        new OffsetAndMetadata(record.offset()+1,null));
-                consumer.commitSync(currentOffsets);
+                for(ConsumerRecord<String,String>record:records){
+                    logger.info("{}",record);
+                    currentOffsets.put(
+                            new TopicPartition(record.topic(),record.partition()),
+                            new OffsetAndMetadata(record.offset()+1,null));
+                    consumer.commitSync(currentOffsets);
+                }
             }
+        }catch (WakeupException e){
+            logger.warn("Wakeup consumer");
+            // 리소스 종료 로직 넣으면 됨.
+        }finally {
+            consumer.close();
+        }
+    }
+
+    static class ShutdownThread extends Thread{
+        public void run(){
+            logger.info("shutdown hook");
+            consumer.wakeup();
         }
     }
 
