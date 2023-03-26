@@ -11,5 +11,8 @@
         <module name="kafka-producer" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="spring-kafka" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>
