@@ -22,6 +22,15 @@
       </GradleProjectSettings>
       <GradleProjectSettings>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/spring-kafaka-commit-listener" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/spring-kafaka-commit-listener" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/spring-kafka-batch-listener" />
         <option name="modules">
           <set>
