@@ -40,6 +40,15 @@
       </GradleProjectSettings>
       <GradleProjectSettings>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/spring-kafka-listener-container" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/spring-kafka-listener-container" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$/spring-kafka-producer" />
         <option name="modules">
           <set>
